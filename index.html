@@ -6,86 +6,68 @@
   <title>G&L Studio - Login</title>
   <script src="auth.js"></script>
   <style>
-    :root {
-      --primary-color: #e63946;
-      --secondary-color: #1d3557;
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-    body {
-      background: linear-gradient(135deg, var(--secondary-color) 0%, #0d2340 100%);
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .login-container {
-      background: white;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
-    }
-    .login-container h1 { color: var(--secondary-color); margin-bottom: 10px; }
-    .login-container p { color: #8d99ae; margin-bottom: 30px; }
-    .form-group { margin-bottom: 20px; text-align: left; }
-    .form-group label { display: block; margin-bottom: 8px; color: var(--secondary-color); font-weight: 600; }
-    .form-group input {
-      width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;
-      transition: border-color 0.3s;
-    }
-    .form-group input:focus { border-color: var(--primary-color); outline: none; }
-    .login-btn {
-      width: 100%; padding: 14px; background: var(--primary-color); color: white; border: none;
-      border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;
-      transition: all 0.3s;
-    }
-    .login-btn:hover { background: #c1272d; transform: translateY(-2px); }
-    .error-msg { color: var(--primary-color); margin-top: 15px; display: none; }
-    .credentials-hint {
-      margin-top: 20px;
-      padding: 15px;
-      background: #f8f9fa;
-      border-radius: 8px;
-      font-size: 13px;
-      color: #666;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: linear-gradient(135deg, #1d3557 0%, #457b9d 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .login-container { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); padding: 50px; width: 100%; max-width: 450px; text-align: center; }
+    .logo { margin-bottom: 30px; }
+    .logo h1 { color: #e63946; font-size: 36px; margin-bottom: 10px; letter-spacing: 2px; }
+    .logo p { color: #1d3557; font-size: 16px; margin-top: 5px; }
+    .input-group { margin-bottom: 25px; text-align: left; }
+    .input-group label { display: block; margin-bottom: 8px; color: #1d3557; font-weight: 600; font-size: 15px; }
+    .input-group input { width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; transition: all 0.3s; }
+    .input-group input:focus { outline: none; border-color: #e63946; box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.1); }
+    .login-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #e63946 0%, #c1272d 100%); color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-top: 10px; }
+    .login-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(230, 57, 70, 0.3); }
+    .error-message { background-color: #ffebee; color: #c62828; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: none; font-size: 15px; border-left: 4px solid #e63946; }
+    .error-message.shake { animation: shake 0.5s; }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+    .footer { margin-top: 30px; color: #8d99ae; font-size: 14px; }
+    @media (max-width: 500px) { .login-container { padding: 30px 20px; margin: 10px; } .logo h1 { font-size: 28px; } }
   </style>
 </head>
 <body>
   <div class="login-container">
-    <h1>📸 G&L Studio</h1>
-    <p>Accedi alla gestione clienti</p>
-    <form id="loginForm" onsubmit="handleLogin(event)">
-      <div class="form-group">
-        <label>Username</label>
-        <input type="text" id="username" required placeholder="Inserisci username">
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="password" required placeholder="Inserisci password">
-      </div>
-      <button type="submit" class="login-btn">🔐 Accedi</button>
-      <p class="error-msg" id="errorMsg">❌ Credenziali non valide</p>
-    </form>
-    <div class="credentials-hint">
-      <strong>📌 Credenziali:</strong><br>
-      Username: G&LStudio<br>
-      Password: 12763Mlg@
+    <div class="logo">
+      <h1>G&L STUDIO</h1>
+      <p>Via Ciarrocco n.21, Canicattì (AG)</p>
     </div>
+    <div id="errorMessage" class="error-message">Credenziali non valide. Riprova.</div>
+    <form id="loginForm" onsubmit="return handleLogin(event)">
+      <div class="input-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required autocomplete="username" autofocus>
+      </div>
+      <div class="input-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="login-btn">🔒 ACCEDI</button>
+    </form>
+    <div class="footer"><p>G&L Studio © 2026 - Tutti i diritti riservati</p></div>
   </div>
   <script>
-    if (isAuthenticated()) { window.location.href = 'dashboard.html'; }
-    function handleLogin(e) {
-      e.preventDefault();
-      const user = document.getElementById('username').value;
-      const pass = document.getElementById('password').value;
-      if (authenticate(user, pass)) {
+    window.addEventListener('load', function() {
+      if (typeof isAuthenticated === 'function' && isAuthenticated()) {
         window.location.href = 'dashboard.html';
-      } else {
-        document.getElementById('errorMsg').style.display = 'block';
       }
+    });
+    function handleLogin(event) {
+      event.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      if (typeof authenticate === 'function' && authenticate(username, password)) {
+        window.location.href = 'dashboard.html';
+        return false;
+      } else {
+        showError();
+        return false;
+      }
+    }
+    function showError() {
+      const errorDiv = document.getElementById('errorMessage');
+      errorDiv.style.display = 'block';
+      errorDiv.classList.add('shake');
+      setTimeout(() => { errorDiv.classList.remove('shake'); }, 500);
     }
   </script>
 </body>
