@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>G&L Studio - Archivio Clienti</title>
+  <script src="auth.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    :root { --primary-color: #e63946; --secondary-color: #1d3557; --light-color: #f1faee; --gray-color: #8d99ae; --border-radius: 12px; --box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #f5f7fa; color: #333; padding: 20px; max-width: 1600px; margin: 0 auto; }
+    .header { background: white; border-radius: var(--border-radius); box-shadow: var(--box-shadow); padding: 25px 40px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+    .header h1 { color: var(--secondary-color); font-size: 28px; }
+    .nav-buttons { display: flex; gap: 15px; flex-wrap: wrap; }
+    .nav-btn { padding: 12px 25px; background: linear-gradient(135deg, var(--secondary-color) 0%, #2a4d7a 100%); color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: all 0.3s; }
+    .nav-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(29, 53, 87, 0.3); }
+    .nav-btn.primary { background: linear-gradient(135deg, var(--primary-color) 0%, #c1272d 100%); }
+    .nav-btn.danger { background: #6c757d; }
+    .search-container { background: white; border-radius: var(--border-radius); box-shadow: var(--box-shadow); padding: 20px; margin-bottom: 30px; }
+    .search-container h2 { color: var(--secondary-color); font-size: 20px; margin-bottom: 15px; }
+    #searchInput { width: 100%; max-width: 600px; padding: 12px 20px; border: 2px solid #ddd; border-radius: 30px; font-size: 16px; outline: none; transition: border-color 0.3s; }
+    #searchInput:focus { border-color: var(--primary-color); }
+    .filters { display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap; }
+    .filter-group { flex: 1; min-width: 200px; }
+    .filter-group label { display: block; margin-bottom: 8px; color: var(--secondary-color); font-size: 14px; }
+    .filter-group select, .filter-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; }
+    .client-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 25px; margin-bottom: 40px; }
+    .client-card { background: white; border-radius: var(--border-radius); box-shadow: var(--box-shadow); padding: 25px; transition: all 0.3s; border-left: 5px solid var(--secondary-color); }
+    .client-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+    .client-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+    .client-card-title { font-size: 20px; font-weight: bold; color: var(--secondary-color); }
+    .client-card-date { background-color: var(--primary-color); color: white; padding: 6px 15px; border-radius: 20px; font-size: 14px; font-weight: bold; }
+    .client-card-service { color: var(--gray-color); font-size: 15px; margin-bottom: 15px; }
+    .client-card-details { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; font-size: 14px; }
+    .client-card-details div { display: flex; flex-direction: column; }
+    .client-card-details div strong { color: var(--secondary-color); margin-bottom: 3px; }
+    .client-card-amounts { display: flex; justify-content: space-between; font-size: 16px; margin-top: 15px; padding-top: 15px; border-top: 2px solid #eee; flex-wrap: wrap; gap: 10px; }
+    .client-card-total { font-weight: bold; color: var(--primary-color); }
+    .client-card-deposits { color: #4CAF50; font-weight: 500; }
+    .client-card-balance { font-weight: bold; color: var(--primary-color); }
+    .card-buttons { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+    .card-btn { padding: 10px 18px; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; flex: 1; justify-content: center; transition: all 0.3s; }
+    .card-btn.whatsapp { background-color: #25D366; color: white; }
+    .card-btn.edit { background-color: #2196F3; color: white; }
+    .card-btn.delete { background-color: #f44336; color: white; }
+    .card-btn.pdf { background-color: #6c757d; color: white; }
+    .card-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--gray-color); }
+    .empty-state i { font-size: 64px; margin-bottom: 20px; display: block; }
+    .empty-state p { font-size: 18px; margin-bottom: 20px; }
+    .empty-state button { padding: 12px 30px; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: all 0.3s; }
+    .empty-state button:hover { background: #c1272d; transform: translateY(-2px); }
+    @media (max-width: 768px) { .client-grid { grid-template-columns: 1fr; } .client-card-details { grid-template-columns: 1fr; } .header { flex-direction: column; text-align: center; } .nav-buttons { width: 100%; justify-content: center; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📁 Archivio Clienti</h1>
+    <div class="nav-buttons">
+      <button class="nav-btn" onclick="window.location.href='dashboard.html'">🏠 Dashboard</button>
+      <button class="nav-btn primary" onclick="window.location.href='clienti.html'">➕ Nuovo Cliente</button>
+      <button class="nav-btn danger" onclick="logout()">🚪 Esci</button>
+    </div>
+  </div>
+  <div class="search-container">
+    <h2>🔍 Cerca e Filtra Clienti</h2>
+    <input type="text" id="searchInput" placeholder="Cerca per nome, cognome o servizio..." onkeyup="filterClients()">
+    <div class="filters">
+      <div class="filter-group">
+        <label for="filterService">Tipo di Servizio</label>
+        <select id="filterService" onchange="filterClients()">
+          <option value="">Tutti</option>
+          <option value="Anniversario">Anniversario</option>
+          <option value="Compleanno">Compleanno</option>
+          <option value="Battesimo">Battesimo</option>
+          <option value="Comunione">Comunione</option>
+          <option value="Cresima">Cresima</option>
+          <option value="Percorso Catecumenale">Percorso Catecumenale</option>
+          <option value="Matrimonio">Matrimonio</option>
+          <option value="Maternity">Maternity</option>
+          <option value="New Born">New Born</option>
+          <option value="Maternity+New Born">Maternity+New Born</option>
+          <option value="Evento">Evento</option>
+          <option value="SOLO STAMPE">SOLO STAMPE</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filterDateFrom">Data Da</label>
+        <input type="date" id="filterDateFrom" onchange="filterClients()">
+      </div>
+      <div class="filter-group">
+        <label for="filterDateTo">Data A</label>
+        <input type="date" id="filterDateTo" onchange="filterClients()">
+      </div>
+    </div>
+  </div>
+  <div class="client-grid" id="clientGrid">
+    <div class="empty-state">
+      <div>📁</div>
+      <p>Nessun cliente trovato</p>
+      <p>Aggiungi il primo cliente per iniziare!</p>
+      <button onclick="window.location.href='clienti.html'">➕ Aggiungi Cliente</button>
+    </div>
+  </div>
+  <script>
+    const { jsPDF } = window.jspdf;
+    if (!isAuthenticated()) { window.location.href = 'index.html'; }
+    document.addEventListener('DOMContentLoaded', function() { loadClients(); });
+    function loadClients() {
+      const clients = JSON.parse(localStorage.getItem('glStudioClients')) || [];
+      const clientGrid = document.getElementById('clientGrid');
+      if (clients.length === 0) { clientGrid.innerHTML = '<div class="empty-state"><div>📁</div><p>Nessun cliente trovato</p><p>Aggiungi il primo cliente per iniziare!</p><button onclick="window.location.href=\'clienti.html\'">➕ Aggiungi Cliente</button></div>'; return; }
+      clients.sort((a, b) => parseDate(a.dataEvento) - parseDate(b.dataEvento));
+      displayClients(clients);
+    }
+    function parseDate(dateStr) { if (!dateStr) return new Date(); if (dateStr.includes('/')) { const parts = dateStr.split('/'); return new Date(parts[2], parts[1] - 1, parts[0]); } return new Date(dateStr); }
+    function displayClients(clients) {
+      const clientGrid = document.getElementById('clientGrid');
+      clientGrid.innerHTML = '';
+      clients.forEach(cliente => {
+        const totaleAcconti = cliente.acconti.reduce((sum, acc) => sum + parseFloat(acc.importo), 0);
+        const saldoResiduo = cliente.importoTotale - totaleAcconti;
+        const eventDate = parseDate(cliente.dataEvento);
+        const formattedDate = ('0' + eventDate.getDate()).slice(-2) + '/' + ('0' + (eventDate.getMonth() + 1)).slice(-2) + '/' + eventDate.getFullYear();
+        const card = document.createElement('div');
+        card.className = 'client-card';
+        card.innerHTML = '<div class="client-card-header"><div class="client-card-title">' + cliente.cognome1 + ' ' + cliente.nome1 + (cliente.cognome2 ? ' & ' + cliente.cognome2 : '') + '</div><div class="client-card-date">' + formattedDate + '</div></div><div class="client-card-service">' + cliente.tipoServizio + '</div><div class="client-card-details"><div><strong>📞 Telefono 1</strong><span>' + (cliente.telefono1 || 'N/A') + '</span></div>' + (cliente.telefono2 ? '<div><strong>📞 Telefono 2</strong><span>' + cliente.telefono2 + '</span></div>' : '') + '<div><strong>📍 Indirizzo</strong><span>' + (cliente.indirizzo1 || 'N/A') + '</span></div>' + (cliente.chiesa ? '<div><strong>⛪ Chiesa/Location</strong><span>' + cliente.chiesa + '</span></div>' : '') + '<div><strong>📧 Email</strong><span>' + (cliente.email1 || 'N/A') + '</span></div>' + (cliente.album ? '<div><strong>🖼️ Album</strong><span>' + cliente.album + '</span></div>' : '') + '</div><div class="client-card-amounts"><span class="client-card-total">Totale: € ' + cliente.importoTotale.toFixed(2).replace('.', ',') + '</span><span class="client-card-deposits">Acconti: € ' + totaleAcconti.toFixed(2).replace('.', ',') + '</span><span class="client-card-balance">Saldo: € ' + saldoResiduo.toFixed(2).replace('.', ',') + '</span></div><div class="card-buttons">' + (cliente.telefono1 ? '<button class="card-btn whatsapp" onclick="openWhatsApp(\'' + cliente.telefono1 + '\', \'' + cliente.nome1 + ' ' + cliente.cognome1 + '\')">💬 WhatsApp</button>' : '') + '<button class="card-btn edit" onclick="editClient(' + cliente.id + ')">✏️ Modifica</button><button class="card-btn pdf" onclick="generatePDF(' + cliente.id + ')">🖨️ PDF</button><button class="card-btn delete" onclick="deleteClient(' + cliente.id + ')">❌ Elimina</button></div>';
+        clientGrid.appendChild(card);
+      });
+    }
+    function filterClients() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+      const serviceFilter = document.getElementById('filterService').value;
+      const dateFrom = document.getElementById('filterDateFrom').value;
+      const dateTo = document.getElementById('filterDateTo').value;
+      let clients = JSON.parse(localStorage.getItem('glStudioClients')) || [];
+      if (searchTerm) { clients = clients.filter(c => c.cognome1.toLowerCase().includes(searchTerm) || c.nome1.toLowerCase().includes(searchTerm) || c.cognome2.toLowerCase().includes(searchTerm) || c.nome2.toLowerCase().includes(searchTerm) || c.tipoServizio.toLowerCase().includes(searchTerm)); }
+      if (serviceFilter) { clients = clients.filter(c => c.tipoServizio === serviceFilter); }
+      if (dateFrom) { clients = clients.filter(c => c.dataEvento >= dateFrom); }
+      if (dateTo) { clients = clients.filter(c => c.dataEvento <= dateTo); }
+      displayClients(clients);
+    }
+    function editClient(clientId) { localStorage.setItem('editingClientId', clientId.toString()); window.location.href = 'clienti.html'; }
+    function deleteClient(clientId) { if (!confirm('⚠️ Sei sicuro di eliminare questo cliente? Questa azione è irreversibile.')) return; let clients = JSON.parse(localStorage.getItem('glStudioClients')) || []; clients = clients.filter(c => c.id !== clientId); localStorage.setItem('glStudioClients', JSON.stringify(clients)); alert('✅ Cliente eliminato con successo'); loadClients(); }
+    function openWhatsApp(phone, name) { const cleanPhone = phone.replace(/\D/g, ''); if (cleanPhone.length < 8) { alert('⚠️ Numero di telefono non valido'); return; } const message = 'Ciao ' + name + ', ecco il link alla tua galleria fotografica...'; window.open('https://wa.me/' + cleanPhone + '?text=' + encodeURIComponent(message), '_blank'); }
+    async function generatePDF(clientId) {
+      const clients = JSON.parse(localStorage.getItem('glStudioClients')) || [];
+      const cliente = clients.find(c => c.id === clientId);
+      if (!cliente) { alert('Cliente non trovato'); return; }
+      try {
+        const printSection = document.createElement('div');
+        printSection.id = 'printSection';
+        printSection.style.padding = '20px';
+        printSection.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+        printSection.style.maxWidth = '800px';
+        printSection.style.margin = '0 auto';
+        const totaleAcconti = cliente.acconti.reduce((sum, acc) => sum + parseFloat(acc.importo), 0);
+        const saldoResiduo = cliente.importoTotale - totaleAcconti;
+        const eventDate = parseDate(cliente.dataEvento);
+        const formattedDate = ('0' + eventDate.getDate()).slice(-2) + '/' + ('0' + (eventDate.getMonth() + 1)).slice(-2) + '/' + eventDate.getFullYear();
+        printSection.innerHTML = '<div style="text-align: center; border-bottom: 3px solid #e63946; padding-bottom: 15px; margin-bottom: 20px;"><h1 style="color: #1d3557; font-size: 24px;">G&L Studio</h1><p style="color: #8d99ae;">Via Ciarrocco n.21, Canicattì (AG)</p></div><h2 style="color: #1d3557; text-align: center; margin: 20px 0;">SCHEDA CLIENTE</h2><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;"><div><h3 style="color: #1d3557; margin-bottom: 10px;">👤 Cliente 1</h3><p><strong>Cognome:</strong> ' + (cliente.cognome1 || 'N/A') + '</p><p><strong>Nome:</strong> ' + (cliente.nome1 || 'N/A') + '</p><p><strong>Indirizzo:</strong> ' + (cliente.indirizzo1 || 'N/A') + (cliente.indirizzo1 ? ' - ' + cliente.citta1 : '') + '</p><p><strong>Telefono:</strong> ' + (cliente.telefono1 || 'N/A') + '</p><p><strong>Email:</strong> ' + (cliente.email1 || 'N/A') + '</p></div>' + (cliente.cognome2 ? '<div><h3 style="color: #1d3557; margin-bottom: 10px;">👤 Cliente 2</h3><p><strong>Cognome:</strong> ' + (cliente.cognome2 || 'N/A') + '</p><p><strong>Nome:</strong> ' + (cliente.nome2 || 'N/A') + '</p><p><strong>Indirizzo:</strong> ' + (cliente.indirizzo2 || 'N/A') + (cliente.indirizzo2 ? ' - ' + cliente.citta2 : '') + '</p><p><strong>Telefono:</strong> ' + (cliente.telefono2 || 'N/A') + '</p><p><strong>Email:</strong> ' + (cliente.email2 || 'N/A') + '</p></div>' : '') + '</div><div style="background-color: rgba(230, 57, 70, 0.1); padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 18px; margin: 25px 0;">LAVORO COMMISSIONATO</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;"><p><strong>Tipo Servizio:</strong> ' + (cliente.tipoServizio || 'N/A') + '</p><p><strong>Data Evento:</strong> ' + formattedDate + '</p></div><div style="margin-bottom: 20px;"><h3 style="color: #1d3557; margin-bottom: 10px;">Servizi Selezionati</h3><div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 14px;">' + (cliente.album ? '<p><strong>Album:</strong> ' + cliente.album + '</p>' : '') + (cliente.copertina ? '<p><strong>Copertina:</strong> ' + cliente.copertina + '</p>' : '') + (cliente.miniAlbum ? '<p><strong>Mini Album:</strong> ' + cliente.miniAlbum + '</p>' : '') + (cliente.effetti ? '<p><strong>Effetti:</strong> ' + cliente.effetti + '</p>' : '') + (cliente.interni ? '<p><strong>Interni:</strong> ' + cliente.interni + '</p>' : '') + (cliente.fotoBook ? '<p><strong>Foto Book:</strong> ' + cliente.fotoBook + '</p>' : '') + (cliente.anteprima ? '<p><strong>Anteprima:</strong> ' + cliente.anteprima + '</p>' : '') + (cliente.postServizio ? '<p><strong>Post Servizio:</strong> ' + cliente.postServizio + '</p>' : '') + (cliente.video ? '<p><strong>Video:</strong> ' + cliente.video + '</p>' : '') + (cliente.tela ? '<p><strong>TELA:</strong> ' + cliente.tela + '</p>' : '') + (cliente.stampeCarta ? '<p><strong>Stampe:</strong> ' + cliente.stampeCarta + '</p>' : '') + (cliente.miniPocket ? '<p><strong>Mini Pocket:</strong> ' + cliente.miniPocket + '</p>' : '') + '<p><strong>Sala Posare:</strong> ' + cliente.servizioSalaPosa + '</p><p><strong>Location:</strong> ' + cliente.servizioLocation + '</p>' + (cliente.chiesa ? '<p><strong>Chiesa/Location:</strong> ' + cliente.chiesa + '</p>' : '') + '</div></div>' + (cliente.galleryEmail || cliente.galleryPassword || cliente.galleryUrl ? '<div style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;"><h3 style="color: #1d3557; margin-bottom: 10px;">APP. GALLERY</h3>' + (cliente.galleryEmail ? '<p><strong>Email:</strong> ' + cliente.galleryEmail + '</p>' : '') + (cliente.galleryPassword ? '<p><strong>Password:</strong> ' + cliente.galleryPassword + '</p>' : '') + (cliente.galleryUrl ? '<p><strong>URL:</strong> <a href="' + cliente.galleryUrl + '" target="_blank">' + cliente.galleryUrl + '</a></p>' : '') + '</div>' : '') + (cliente.cartellaServizio ? '<div style="margin-bottom: 15px;"><p><strong>Cartella servizio in:</strong> ' + cliente.cartellaServizio + '</p></div>' : '') + (cliente.nota ? '<div style="margin-bottom: 20px;"><h3 style="color: #1d3557; margin-bottom: 10px;">NOTA</h3><p style="white-space: pre-wrap;">' + cliente.nota + '</p></div>' : '') + '<div style="text-align: center; margin: 30px 0; padding: 20px; background-color: rgba(230, 57, 70, 0.1); border-radius: 12px;"><p style="font-size: 24px; font-weight: bold; color: #e63946; margin-bottom: 10px;">IMPORTO TOTALE IVA ESCLUSA</p><p style="font-size: 28px; font-weight: bold; color: #e63946;">€ ' + cliente.importoTotale.toFixed(2).replace('.', ',') + '</p></div><div style="margin-bottom: 20px;"><h3 style="color: #1d3557; margin-bottom: 10px;">Acconti Ricevuti</h3>' + (cliente.acconti.length > 0 ? cliente.acconti.map(acc => '<p style="margin: 5px 0;">' + acc.data + ' - € ' + parseFloat(acc.importo).toFixed(2).replace('.', ',') + '</p>').join('') : '<p>Nessun acconto registrato</p>') + '</div><div style="text-align: center; font-size: 22px; font-weight: bold; color: #e63946; padding: 15px; background-color: rgba(230, 57, 70, 0.1); border-radius: 8px;">SALDO RESIDUO: € ' + saldoResiduo.toFixed(2).replace('.', ',') + '</div><div style="margin-top: 30px; text-align: center; font-size: 14px; color: #8d99ae;"><p>G&L Studio - Via Ciarrocco n.21, Canicattì (AG)</p><p>Tel: +39 366 9381103 / 320 6337370 | Email: weddinggel@aruba.it</p></div>';
+        document.body.appendChild(printSection);
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const canvas = await html2canvas(printSection, { scale: 2, useCORS: true, logging: false });
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = 190;
+        const pageHeight = 295;
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 10;
+        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+        while (heightLeft >= 0) { position = heightLeft - imgHeight; pdf.addPage(); pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight); heightLeft -= pageHeight; }
+        pdf.save('G&L_Studio_Cliente_' + cliente.cognome1 + '_' + formattedDate + '.pdf');
+        document.body.removeChild(printSection);
+      } catch (error) { console.error('Errore generazione PDF:', error); alert('❌ Errore durante la generazione del PDF. Riprova.'); }
+    }
+    function logout() { if (confirm('Vuoi uscire dall\'applicazione?')) { window.location.href = 'logout.html'; } }
+  </script>
+</body>
+</html>
