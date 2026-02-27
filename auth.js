@@ -1,6 +1,7 @@
 // ============================================
 // AUTH.JS - Sistema di Autenticazione G&L Studio
 // ============================================
+
 const VALID_USERNAME = 'G&LStudio';
 const VALID_PASSWORD = '12763Mlg@';
 
@@ -36,41 +37,15 @@ function getCurrentUser() {
   return localStorage.getItem('glStudioUser') || '';
 }
 
-function isSessionExpired() {
-  const loginTime = localStorage.getItem('glStudioLoginTime');
-  if (!loginTime) return true;
-  const loginDate = new Date(loginTime);
-  const now = new Date();
-  const diffHours = (now - loginDate) / (1000 * 60 * 60);
-  return diffHours > 24;
-}
-
 function protectPage() {
   if (!isAuthenticated()) {
     window.location.href = 'index.html';
     return false;
   }
-  if (isSessionExpired()) {
-    if (confirm('Sessione scaduta. Vuoi rinnovarla?')) {
-      localStorage.setItem('glStudioLoginTime', new Date().toISOString());
-    } else {
-      logoutUser();
-      window.location.href = 'index.html';
-      return false;
-    }
-  }
   return true;
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-  if (window.location.pathname.includes('index.html') || 
-      window.location.pathname.includes('logout.html') ||
-      window.location.pathname.includes('import-backup.html')) {
-    return;
-  }
-  protectPage();
-});
-
+// Esporta funzioni globalmente (IMPORTANTE!)
 window.authenticate = authenticate;
 window.isAuthenticated = isAuthenticated;
 window.logoutUser = logoutUser;
@@ -78,4 +53,6 @@ window.logout = logout;
 window.getCurrentUser = getCurrentUser;
 window.protectPage = protectPage;
 
-console.log('✅ Auth.js caricato - G&L Studio Authentication System');
+console.log('✅ Auth.js caricato - G&L Studio');
+console.log('👤 Username: G&LStudio');
+console.log('🔒 Password: 12763Mlg@');
