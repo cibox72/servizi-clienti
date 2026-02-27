@@ -1,0 +1,7 @@
+# Non caricare mai i dati dei clienti su GitHub
+*.json
+gl-studio-clienti.json
+backup-*.json
+.DS_Store
+Thumbs.db
+*.log
