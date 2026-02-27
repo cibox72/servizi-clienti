@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>G&L Studio - Dashboard</title>
+  <script src="auth.js"></script>
+  <style>
+    :root {
+      --primary-color: #e63946;
+      --secondary-color: #1d3557;
+      --light-color: #f1faee;
+      --gray-color: #8d99ae;
+      --border-radius: 12px;
+      --box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); min-height: 100vh; padding: 20px; }
+    .header { background: white; border-radius: var(--border-radius); box-shadow: var(--box-shadow); padding: 25px 40px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+    .header-left h1 { color: var(--secondary-color); font-size: 32px; margin-bottom: 5px; }
+    .header-left p { color: var(--gray-color); font-size: 16px; }
+    .header-right { display: flex; gap: 15px; align-items: center; }
+    .user-info { text-align: right; }
+    .user-info .username { font-weight: bold; color: var(--secondary-color); font-size: 18px; }
+    .user-info .logout-btn { background: var(--primary-color); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+    .user-info .logout-btn:hover { background: #c1272d; transform: translateY(-2px); }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-bottom: 40px; }
+    .stat-card { background: white; border-radius: var(--border-radius); box-shadow: var(--box-shadow); padding: 30px; text-align: center; transition: transform 0.3s; }
+    .stat-card:hover { transform: translateY(-5px); }
+    .stat-card .icon { font-size: 48px; margin-bottom: 15px; }
+    .stat-card .count { font-size: 36px; font-weight: bold; color: var(--primary-color); margin: 10px 0; }
+    .stat-card .label { color: var(--gray-color); font-size: 16px; }
+    .quick-actions { background: white; border-radius: var(--border-radius); box-shadow: var(--box-shadow); padding: 30px; margin-bottom: 40px; }
+    .quick-actions h2 { color: var(--secondary-color); font-size: 24px; margin-bottom: 25px; text-align: center; }
+    .actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+    .action-btn { background: linear-gradient(135deg, var(--secondary-color) 0%, #2a4d7a 100%); color: white; border: none; border-radius: 10px; padding: 25px 15px; cursor: pointer; transition: all 0.3s; text-align: center; font-size: 16px; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .action-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(29, 53, 87, 0.3); }
+    .action-btn.danger { background: linear-gradient(135deg, var(--primary-color) 0%, #c1272d 100%); }
+    .recent-clients { background: white; border-radius: var(--border-radius); box-shadow: var(--box-shadow); padding: 30px; }
+    .recent-clients h2 { color: var(--secondary-color); font-size: 24px; margin-bottom: 25px; text-align: center; }
+    .client-list { display: grid; gap: 15px; }
+    .client-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #f8f9fa; border-radius: 8px; transition: all 0.3s; }
+    .client-item:hover { background: #e9ecef; transform: translateX(5px); }
+    .client-info { flex: 1; }
+    .client-info .name { font-weight: bold; color: var(--secondary-color); font-size: 16px; }
+    .client-info .service { color: var(--gray-color); font-size: 14px; margin-top: 3px; }
+    .client-date { background: var(--primary-color); color: white; padding: 6px 15px; border-radius: 20px; font-size: 14px; font-weight: bold; }
+    @media (max-width: 768px) { .header { flex-direction: column; text-align: center; } .header-right { width: 100%; justify-content: center; } .user-info { text-align: center; } .stats-grid, .actions-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-left">
+      <h1>📸 G&L STUDIO</h1>
+      <p>Dashboard di Gestione Clienti</p>
+    </div>
+    <div class="header-right">
+      <div class="user-info">
+        <div class="username" id="userName">G&LStudio</div>
+        <button class="logout-btn" onclick="logout()">🚪 Esci</button>
+      </div>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="icon">👥</div>
+      <div class="count" id="totalClients">0</div>
+      <div class="label">Clienti Totali</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon">📅</div>
+      <div class="count" id="upcomingEvents">0</div>
+      <div class="label">Eventi Prossimi</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon">💰</div>
+      <div class="count" id="totalRevenue">€ 0</div>
+      <div class="label">Totale Incassato</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon">⏳</div>
+      <div class="count" id="pendingBalance">€ 0</div>
+      <div class="label">Saldo da Incassare</div>
+    </div>
+  </div>
+  <div class="quick-actions">
+    <h2>Azioni Rapide</h2>
+    <div class="actions-grid">
+      <button class="action-btn" onclick="window.location.href='clienti.html'">
+        <span>📝</span> Nuovo Cliente
+      </button>
+      <button class="action-btn" onclick="window.location.href='archivio.html'">
+        <span>📁</span> Archivio Clienti
+      </button>
+      <button class="action-btn" onclick="downloadBackup()">
+        <span>📥</span> Backup Dati
+      </button>
+      <button class="action-btn danger" onclick="restoreBackup()">
+        <span>📤</span> Ripristina Backup
+      </button>
+    </div>
+  </div>
+  <div class="recent-clients">
+    <h2>Clienti Recenti</h2>
+    <div class="client-list" id="recentClientsList">
+      <p style="text-align: center; color: var(--gray-color); padding: 20px;">Nessun cliente trovato</p>
+    </div>
+  </div>
+  <script>
+    if (!isAuthenticated()) { window.location.href = 'index.html'; }
+    document.addEventListener('DOMContentLoaded', function() { loadDashboardData(); });
+    function loadDashboardData() {
+      const clients = JSON.parse(localStorage.getItem('glStudioClients')) || [];
+      document.getElementById('totalClients').textContent = clients.length;
+      const today = new Date();
+      const next30Days = new Date();
+      next30Days.setDate(today.getDate() + 30);
+      const upcoming = clients.filter(c => {
+        const eventDate = parseDate(c.dataEvento);
+        return eventDate >= today && eventDate <= next30Days;
+      });
+      document.getElementById('upcomingEvents').textContent = upcoming.length;
+      const totalRevenue = clients.reduce((sum, c) => {
+        return sum + c.acconti.reduce((s, acc) => s + parseFloat(acc.importo), 0);
+      }, 0);
+      document.getElementById('totalRevenue').textContent = '€ ' + totalRevenue.toFixed(2).replace('.', ',');
+      const pendingBalance = clients.reduce((sum, c) => {
+        const acconti = c.acconti.reduce((s, acc) => s + parseFloat(acc.importo), 0);
+        return sum + (c.importoTotale - acconti);
+      }, 0);
+      document.getElementById('pendingBalance').textContent = '€ ' + pendingBalance.toFixed(2).replace('.', ',');
+      const recentClients = [...clients].sort((a, b) => new Date(b.dataSalvataggio) - new Date(a.dataSalvataggio)).slice(0, 5);
+      const list = document.getElementById('recentClientsList');
+      if (recentClients.length === 0) {
+        list.innerHTML = '<p style="text-align: center; color: var(--gray-color); padding: 20px;">Nessun cliente trovato</p>';
+        return;
+      }
+      list.innerHTML = recentClients.map(client => {
+        const eventDate = parseDate(client.dataEvento);
+        const formattedDate = ('0' + eventDate.getDate()).slice(-2) + '/' + ('0' + (eventDate.getMonth() + 1)).slice(-2) + '/' + eventDate.getFullYear();
+        return '<div class="client-item"><div class="client-info"><div class="name">' + client.cognome1 + ' ' + client.nome1 + '</div><div class="service">' + client.tipoServizio + '</div></div><div class="client-date">' + formattedDate + '</div></div>';
+      }).join('');
+    }
+    function parseDate(dateStr) {
+      if (!dateStr) return new Date();
+      if (dateStr.includes('/')) {
+        const parts = dateStr.split('/');
+        return new Date(parts[2], parts[1] - 1, parts[0]);
+      }
+      return new Date(dateStr);
+    }
+    function downloadBackup() {
+      const clients = JSON.parse(localStorage.getItem('glStudioClients')) || [];
+      if (clients.length === 0) { alert('Nessun dato da esportare'); return; }
+      let backupNum = parseInt(localStorage.getItem('backupNumber') || '0') + 1;
+      localStorage.setItem('backupNumber', backupNum.toString());
+      const backupData = { version: 'G&L Studio v1.0', exportDate: new Date().toISOString(), clients: clients };
+      const filename = 'backup-gl-studio-clienti-' + String(backupNum).padStart(3, '0') + '.json';
+      const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      alert('✅ Backup salvato: ' + filename);
+    }
+    function restoreBackup() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = event => {
+          try {
+            const data = JSON.parse(event.target.result);
+            if (!data.clients) { alert('❌ File non valido: struttura dati non riconosciuta'); return; }
+            if (!confirm('⚠️ Questa operazione sovrascriverà tutti i clienti esistenti (' + data.clients.length + ' clienti nel file). Procedere?')) { return; }
+            localStorage.setItem('glStudioClients', JSON.stringify(data.clients));
+            alert('✅ Backup ripristinato con successo (' + data.clients.length + ' clienti)');
+            loadDashboardData();
+          } catch (error) {
+            console.error('Errore ripristino:', error);
+            alert('❌ Errore durante il ripristino del file');
+          }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    }
+  </script>
+</body>
+</html>
