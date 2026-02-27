@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>G&L Studio - Importa Backup</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background: #f5f7fa; padding: 40px; max-width: 800px; margin: 0 auto; }
+    .container { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    h1 { color: #1d3557; margin-bottom: 20px; }
+    .drop-zone { border: 2px dashed #1d3557; padding: 40px; text-align: center; border-radius: 8px; margin: 20px 0; cursor: pointer; }
+    .drop-zone:hover { background: #f8f9fa; }
+    #status { margin-top: 20px; padding: 15px; border-radius: 8px; display: none; }
+    .success { background: #d4edda; color: #155724; }
+    .error { background: #f8d7da; color: #721c24; }
+    .btn { display: inline-block; padding: 12px 25px; background: #1d3557; color: white; text-decoration: none; border-radius: 8px; margin-top: 20px; }
+    .warning { background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📥 Importa Backup Clienti</h1>
+    <div class="warning">
+      <strong>⚠️ Importante:</strong> Questa pagina corregge automaticamente i dati del vecchio backup (es. converte "date" in "data" per gli acconti).
+    </div>
+    <p>Seleziona il file <strong>gl-studio-clienti.json</strong> per ripristinare i dati.</p>
+    <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
+      <p style="font-size: 40px;">📂</p>
+      <p>Clicca per selezionare il file JSON</p>
+      <input type="file" id="fileInput" accept=".json" style="display: none" onchange="handleFile(this.files[0])">
+    </div>
+    <div id="status"></div>
+    <a href="index.html" class="btn">🏠 Torna al Login</a>
+  </div>
+  <script>
+    function handleFile(file) {
+      const status = document.getElementById('status');
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data.clients) throw new Error('Formato non valido: manca l\'array "clients"');
+          
+          // CORREZIONE AUTOMATICA DATI VECCHI
+          const fixedClients = data.clients.map(client => {
+            // Correggi acconti (date -> data)
+            if (client.acconti) {
+              client.acconti = client.acconti.map(acc => ({
+                data: acc.data || acc.date,
+                importo: acc.importo
+              }));
+            }
+            // Normalizza importoTotale
+            client.importoTotale = parseFloat(client.importoTotale) || 0;
+            // Aggiungi dataSalvataggio se manca
+            if (!client.dataSalvataggio) {
+              client.dataSalvataggio = new Date().toISOString();
+            }
+            return client;
+          });
+
+          localStorage.setItem('glStudioClients', JSON.stringify(fixedClients));
+          status.className = 'success';
+          status.innerHTML = '<strong>✅ Importazione completata!</strong><br>' + fixedClients.length + ' clienti caricati.<br><br>🔄 Verrai reindirizzato alla dashboard tra 3 secondi...';
+          status.style.display = 'block';
+          setTimeout(() => window.location.href = 'dashboard.html', 3000);
+        } catch (err) {
+          status.className = 'error';
+          status.innerHTML = '<strong>❌ Errore:</strong> ' + err.message;
+          status.style.display = 'block';
+        }
+      };
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>
