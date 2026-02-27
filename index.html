@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>G&L Studio - Login</title>
+  <script src="auth.js"></script>
+  <style>
+    :root {
+      --primary-color: #e63946;
+      --secondary-color: #1d3557;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+    body {
+      background: linear-gradient(135deg, var(--secondary-color) 0%, #0d2340 100%);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .login-container {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .login-container h1 { color: var(--secondary-color); margin-bottom: 10px; }
+    .login-container p { color: #8d99ae; margin-bottom: 30px; }
+    .form-group { margin-bottom: 20px; text-align: left; }
+    .form-group label { display: block; margin-bottom: 8px; color: var(--secondary-color); font-weight: 600; }
+    .form-group input {
+      width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    .form-group input:focus { border-color: var(--primary-color); outline: none; }
+    .login-btn {
+      width: 100%; padding: 14px; background: var(--primary-color); color: white; border: none;
+      border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;
+      transition: all 0.3s;
+    }
+    .login-btn:hover { background: #c1272d; transform: translateY(-2px); }
+    .error-msg { color: var(--primary-color); margin-top: 15px; display: none; }
+    .credentials-hint {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h1>📸 G&L Studio</h1>
+    <p>Accedi alla gestione clienti</p>
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="username" required placeholder="Inserisci username">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" required placeholder="Inserisci password">
+      </div>
+      <button type="submit" class="login-btn">🔐 Accedi</button>
+      <p class="error-msg" id="errorMsg">❌ Credenziali non valide</p>
+    </form>
+    <div class="credentials-hint">
+      <strong>📌 Credenziali:</strong><br>
+      Username: G&LStudio<br>
+      Password: 12763Mlg@
+    </div>
+  </div>
+  <script>
+    if (isAuthenticated()) { window.location.href = 'dashboard.html'; }
+    function handleLogin(e) {
+      e.preventDefault();
+      const user = document.getElementById('username').value;
+      const pass = document.getElementById('password').value;
+      if (authenticate(user, pass)) {
+        window.location.href = 'dashboard.html';
+      } else {
+        document.getElementById('errorMsg').style.display = 'block';
+      }
+    }
+  </script>
+</body>
+</html>
